@@ -2,6 +2,8 @@ Shader "Unlit/mdkshader"
 {
 	Properties
 	{
+		[Toggle(WORKFLOW)] _WorkFlow("WorkFlow", Int) = 1
+
 		_MainTex ("Texture", 2D) = "white" {}
 
         _AlbedoColor ("Albedo Color", Color) = (1,1,1,1)
@@ -19,7 +21,6 @@ Shader "Unlit/mdkshader"
 
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel ("Smoothness texture channel", Float) = 0
-
 	}
 	SubShader
 	{
@@ -29,8 +30,11 @@ Shader "Unlit/mdkshader"
 		Pass
 		{
 			CGPROGRAM
+            #pragma shader_feature REDIFY_ON
 			#pragma vertex vert
 			#pragma fragment frag
+
+
 			// make fog work
 			#pragma multi_compile_fog
 			
@@ -51,7 +55,8 @@ Shader "Unlit/mdkshader"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			
+			float4 _AlbedoColor;
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -63,8 +68,14 @@ Shader "Unlit/mdkshader"
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
+				fixed4 col;
+				#if REDIFY_ON
+			        col = fixed4(0, 0.4, 0, 1);
+				#else
+				    col = fixed4(0.4,0,0,1);
+				#endif
 				// sample the texture
-				fixed4 col = tex2D(_MainTex, i.uv);
+				// fixed4 col = tex2D(_MainTex, i.uv);
 				// apply fog
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
